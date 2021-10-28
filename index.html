@@ -5,6 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>사전 검색 서비스</title>
+    <script src="./js/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <script src="./js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="./css/jquery-ui.min.css">
+    <script src="./js/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,9 +28,40 @@
        const container = document.getElementById('container')
        const BASE_URL = 'http://localhost:5000/api/dics';
 
+        function checkIfStringHasSpecialCharacter(str) {
+            const re = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+            return re.test(str);
+        }
+
+        function checkIfStringHasNumbers(str) {
+            return /\d/.test(str);
+        }        
+
+        function checkIfStringHasLetters(str) {
+            return /[a-z]/i.test(str);
+        }        
+
        // 서버 데이터 가져오기
        function getData(baseUrl, query){
+            submitBtn.disabled = true // 버튼 비활성화
            //console.log(query)
+           if(query){
+                if(checkIfStringHasSpecialCharacter(query)){
+                        container.innerHTML = "your search keyword has Special Character. Retype only hangle! "
+                        return;
+                }
+
+                if(checkIfStringHasNumbers(query)){
+                        container.innerHTML = "your search keyword has Numbers. Retype only hangle! "
+                        return;
+                }
+
+                if(checkIfStringHasLetters(query)){
+                        container.innerHTML = "Retype only hangle! "
+                        return;
+                }
+            }        
+
            fetch(`${baseUrl}/${query}`, {
                 headers: {
                     "Content-Type": "application/json",
@@ -33,9 +69,15 @@
            })
            .then( res => res.json())
            .then( data => {
+                submitBtn.disabled = false // 버튼활성화
                 console.log(data)
 
                 const {words} = data;
+
+                if(words.length === 0){
+                    container.innerHTML = "No Words Found!"
+                    return;
+                }
 
                 const template = words.map(word => {
                     if(word.r_seq == undefined){
@@ -43,10 +85,16 @@
                     }
                     return (
                         `
-                            <div class="item">
-                                <div class="word"><a href="${word.r_link}" target="_blank">${word.r_word}</a><sup>${word.r_seq}</sup> ${word.r_chi}</div>
-                                <p class="description">${word.r_pos}<br>${word.r_des}</p>
+                            <div class="card border-primary mb-3 w-100">
+                            <h5 class="card-header"><a href="${word.r_link}" target="_blank">${word.r_word}<sup>${word.r_seq}</sup></a> ${word.r_chi}</h5>
+                            <div class="card-body">
+                                <p class="card-text">${word.r_des}</p>
                             </div>
+                            <div class="card-footer text-muted">
+                                ${word.r_pos}
+                            </div>  
+                            </div>
+
                         `
                     )
                 })
@@ -58,6 +106,11 @@
             console.log(query.value)
             getData(BASE_URL, query.value)
        })
+       query.addEventListener('keypress',function(e){
+           if(e.keyCode === 13){
+               getData(BASE_URL, query.value)
+           }
+       })       
        window.addEventListener('DOMContentLoaded', function() { 
             getData(BASE_URL)
        });

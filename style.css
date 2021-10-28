@@ -35,7 +35,6 @@ body {
 
 #container {
     width: 60%;
-    columns: 2;
     margin: 50px auto;
 }
 .item {
