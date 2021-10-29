@@ -82,42 +82,6 @@ function getData(baseUrl, query){
      })
  }
 
- function getAuto(baseUrl, query){
-    console.log(query)
-    if(checkIfStringHasNumbers(query) || checkIfStringHasSpecialCharacter(query) || checkIfStringHasLetters(query)){
-        return;
-    }       
-
-   fetch(`${baseUrl}/auto/${query}`, {
-        headers: {
-            "Content-Type": "application/json",
-        }
-   })
-   .then( res => res.json())
-   .then( data => {
-        console.log(data)
-
-        const {words} = data;
-
-        if(words.length === 0){
-            autocomplete.innerHTML = ""
-            return;
-        } 
-
-        const template = words.map(word => {
-            return (
-                `
-                    <div>
-                    <a href="#" onclick="queryIn('${word}'); return false;">${word}</a>  
-                    </div>
-
-                `
-            )
-        })
-        autocomplete.innerHTML = template.join("")                
-    })
-}
-
 submitBtn.addEventListener('click', function(){
      console.log(query.value)
      getData(BASE_URL, query.value)
@@ -125,10 +89,48 @@ submitBtn.addEventListener('click', function(){
 query.addEventListener('keyup',function(e){
     if(e.keyCode === 13){
         getData(BASE_URL, query.value)
-    }else{
-        getAuto(BASE_URL, query.value)
     }
 })       
 window.addEventListener('DOMContentLoaded', function() { 
      getData(BASE_URL)
+});
+
+$(function () {
+    $("#search").autocomplete({
+        source : function(request, response) {
+            $.ajax({
+                url : BASE_URL+"/auto/"+$("#search").val()
+                , dataType: "json"
+                , success : function(data){ // 성공
+                    const {words} = data;
+                    response(
+                        words.map(word => {
+                            return {
+                                label : word    //목록에 표시되는 값
+                                , value : word   //선택 시 input창에 표시되는 값
+                            };
+                        })
+                    );    //response
+                }
+                ,
+                error : function(){ //실패
+                    alert("통신에 실패했습니다.");
+                }
+            });
+        }
+        , minLength : 1    
+        , autoFocus : false
+        , response: function(event, ui) {
+            //console.log(ui);
+        }       
+        , select : function(evt, ui) {
+            //console.log("전체 data: " + JSON.stringify(ui));
+            //console.log("검색 데이터 : " + ui.item.value);
+        }
+        , focus : function(evt, ui) {
+            return false;
+        }
+        , close : function(evt) {
+        }
+    })  
 });
