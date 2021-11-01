@@ -2,7 +2,8 @@ const query = document.getElementById('search')
 const submitBtn = document.getElementById('submit')
 const container = document.getElementById('container')
 const autocomplete = document.getElementById('autocomplete')
-const BASE_URL = 'http://localhost:5000/api/dics';
+//const BASE_URL = 'http://localhost:5000/api/dics';
+const BASE_URL = 'https://dic-search.herokuapp.com/api/dics';
 
  function checkIfStringHasSpecialCharacter(str) {
      const re = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
@@ -96,6 +97,7 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 $(function () {
+    
     $("#search").autocomplete({
         source : function(request, response) {
             $.ajax({
